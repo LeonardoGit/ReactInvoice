@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<title></title>
+
+		<link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="/css/app.css">
+		<script type="text/javascript" src="/js/lib/jquery/jquery-2.0.3.min.js"></script>
+		<script type="text/javascript" src="/js/lib/react/react.js"></script>
+		<script type="text/javascript" src="/js/lib/react-dom/react-dom.js"></script>
+		<script type="text/javascript" src="/js/lib/axios/axios.js"></script>
+		<script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.min.js"></script>
+	</head>
+	<body>
+
+		<nav class="navbar navbar-default navbar-static-top">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#">Invoice App</a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+						<li><a href="#">Products</a></li>
+						<li><a href="#">Customers</a></li>
+						<li><a href="#">Invoices</a></li>
+					</ul>
+				</div><!--/.nav-collapse -->
+			</div>
+		</nav>
+
+		<div class="container" id="client">
+
+		</div> <!-- /container -->
+
+		<script type="text/babel">
+
+			var get = ( path, params ) => {
+				return axios({
+					url: path,
+					params: params,
+					responseType: 'json'
+				})
+				.then( (res) => {
+					return res.data;
+				})
+			};
+
+			var post = ( path, params, data ) => {
+				return axios({
+					method: 'post',
+					url: path,
+					params: params,
+					data: data,
+					responseType: 'json'
+				})
+				.then( ( res ) => {
+					return res.data;
+				});
+			};
+
+			var Client = React.createClass({
+
+				getInitialState () {
+					return { invoices: [] };
+				},
+
+				componentDidMount () {
+					get( 'http://localhost:3333/api/invoices' )
+					.then( (data) => {
+						this.setState(
+							{ invoices: data }
+						);
+					})
+				},
+
+				handleClick () {
+					console.log('clicked');
+
+				},
+
+				render () {
+					return (
+						<div>
+							<button onClick={this.handleClick}>New Invoice</button>
+							<h1>Invoices</h1>
+							{ this.state.invoices.map( ( invoice, index ) => {
+									return <div>
+										<p>{ invoice.id }</p>
+										<p>{ invoice.customer_id }</p>
+										<p>{ invoice.discount }</p>
+										<p>{ invoice.total }</p>
+									</div>
+							}) }
+							<Form />
+						</div>
+					);
+				}
+			});
+
+			var Form = React.createClass({
+
+				getInitialState () {
+					return { customers: [] };
+				},
+
+				componentDidMount () {
+					get( 'http://localhost:3333/api/customers' )
+					.then( (data) => {
+						var c = data.map( (customer) => {
+							return customer['name'];
+						})
+						this.setState(
+							{ customers: c }
+						);
+					})
+				},
+
+				handleChange (field, e) {
+					var nextState = {}
+					nextState[field] = e.target.checked
+					this.setState(nextState)
+				},
+
+				handleSubmit () {
+					console.log('submit clicked');
+					post( 'http://localhost:3333/api/invoices' )
+					.then( (data) => {
+						console.log('server response: ', data);
+					})
+				},
+
+				renderSelect (id, label, values) {
+					var options = values.map(function(value) {
+						return <option value={value}>{value}</option>
+					})
+					return this.renderField(id, label,
+						<select className="form-control" id={id} ref={id}>
+							{options}
+						</select>
+					)
+				},
+
+				renderTextInput (id, label) {
+					return this.renderField(id, label,
+						<input type="text" className="form-control" id={id} ref={id}/>
+					)
+				},
+
+				renderField (id, label, field) {
+					return <div>
+						<label htmlFor={id} className="col-sm-4 control-label">{label}</label>
+						<div className="col-sm-6">
+							{field}
+						</div>
+					</div>
+				},
+
+				render () {
+					return (
+						<div>
+							<h2>Form</h2>
+							<form className="form-horizontal">
+								<div className="form-group">
+										{ this.renderSelect('customers', 'Customers', this.state.customers) }
+										{ this.renderSelect('discount', 'Discount %', [5, 10, 15, 20] ) }
+								</div>
+							</form>
+							<div>
+								<button type="button" className="btn btn-primary btn-block" onClick={this.handleSubmit}>Submit</button>
+							</div>
+						</div>
+					);
+				}
+
+			});
+
+			ReactDOM.render(
+				<Client />,
+				document.getElementById('client')
+			);
+
+		</script>
+	</body>
+</html>

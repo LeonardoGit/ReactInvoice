@@ -1,0 +1,15 @@
+{
+  "name": "interviewed-angular",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.9.1",
+    "body-parser": "1.15.0",
+    "express": "~4.13.4",
+    "lodash": "latest",
+    "react": "^0.14.8",
+    "react-dom": "^0.14.8",
+    "sequelize": "^3.20.0",
+    "sqlite3": "latest"
+  }
+}
